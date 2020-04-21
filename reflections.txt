@@ -1,0 +1,14 @@
+am: are
+was: were
+i: you
+i'd: you would
+i've: you have
+i'll: you will
+my: your
+are: am
+you've: i have
+you'll: i will
+your: my
+yours: mine
+you: me
+me: you

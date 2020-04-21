@@ -1,0 +1,8 @@
+can't: cannot cant
+don't: dont
+won't: wont
+i'd: id
+i've: ive
+you'd: youd
+you've: youve
+you'll: youll

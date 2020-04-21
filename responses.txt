@@ -1,0 +1,9 @@
+key: i want (.*)
+  resp: Suppose you got %1 soon?
+  resp: Why do you want %1?
+  resp: Would it really help you if you got %1?
+  resp: How long have you wanted %1?
+  resp: And how long have you felt this way?
+key: i believe (.*)
+  resp: How long have you believed %1?
+  resp: Do you think it is healthy that you believe that?

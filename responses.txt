@@ -1,9 +1,35 @@
-key: i want (.*)
-  resp: Suppose you got %1 soon?
-  resp: Why do you want %1?
-  resp: Would it really help you if you got %1?
-  resp: How long have you wanted %1?
-  resp: And how long have you felt this way?
-key: i believe (.*)
-  resp: How long have you believed %1?
-  resp: Do you think it is healthy that you believe that?
+key = None
+  decomp = *
+    resp = I'm not sure I understand you fully.
+    resp = Please go on.
+    resp = What does that suggest to you?
+    resp = Do you feel strongly about discussing such things?
+key = you
+  decomp = * you want *
+    resp = Suppose you got 2 soon?
+    resp = Why do you want 2?
+    resp = Would it really help you if you got 2?
+    resp = How long have you wanted 2?
+    resp = And how long have you felt this way?
+  decomp = * you believe *
+    resp = How long have you believed 2?
+    resp = Do you think it is healthy that you believe that?
+key = remember
+  decomp = * you remember *
+    resp = Do you often think of 2?
+    resp = Does thinking of 2 bring anything else to mind?
+    resp = Why did you remember 2 just now?
+    resp = What in the present situation reminds you of 2?
+    resp = What is the connection between me and 2?
+  decomp = * do i remember *
+    resp = Did you think I would forget 2?
+    resp = Why do you think I should recall 2 now?
+    resp = What about 2?
+key = dreamed
+  decomp = * you dreamed *
+    resp = Really, 2?
+    resp = Have you ever fantasized 2 while you were awake?
+    resp = Have you ever dreamed 2 before?
+key = sorry
+  decomp = * sorry *
+    resp = Don't appologize.

@@ -25,3 +25,4 @@ I was = youwere
 was I = wereyou
 I = you
 my = your
+hello = hi

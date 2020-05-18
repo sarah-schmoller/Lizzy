@@ -64,11 +64,11 @@ class Decomp:
                 return key.get_weight()
         return None
 
-
 class Eliza:
     def __init__(self):
         self.keys = []
         self.substitutions = {}
+        self.stack = []
 
     def response_select(self, decomp):
         if decomp.get_response_index() < len(decomp.get_responses())-1:
@@ -80,51 +80,65 @@ class Eliza:
 
     def response_swap(self, decomp_rule, response, user_input):
         result_sub = user_input
-        m = re.findall("(\*|[a-z' ]*)", decomp_rule)
+        m = re.findall("(\*|[/a-z' ]*)", decomp_rule)
         num = re.findall("[0-9]", response)
         # the digit telling what position to use
         num = num[0]
-        new_list = [i.lstrip().rstrip() for i in m if i != "" and i != " "]
+        new_list = [i.lstrip(" ").rstrip(" ") for i in m if i != "" and i != " "]
         for i in range(0, len(new_list)):
             if i < int(num):
                 if new_list[i] != "*":
-                    if new_list[i] in result_sub.lower():
-                        result_sub = result_sub.lower().partition(new_list[i])[2].lstrip().rstrip()
-                elif new_list[i] == "*":
-                    continue
+                    if new_list[i].strip("/") in result_sub.lower():
+                        result_sub = result_sub.lower().partition(new_list[i].strip("/"))[2].lstrip().rstrip()
+                    else:
+                        pass
+                else:
+                    pass
             elif i >= int(num):
-                if new_list[i] == "*":
+                if new_list[i][0] == "/":
+                    result_sub = new_list[i].strip("/")
+                elif new_list[i] == "*":
                     if i >= len(new_list)-1:
-                        continue
+                        pass
                     elif i < len(new_list)-1:
                         if new_list[i + 1] != "*" and new_list[i + 1] in result_sub.lower():
-                            result_sub = result_sub.lower().partition(new_list[i + 1])[0].lstrip().rstrip()
+                            result_sub = result_sub.lower().partition(new_list[i + 1])[0].lstrip().rstrip() #if isinstance(result_sub, list) else result_sub][0]
                     else:
                         print("Error: invalid response file")
                 else:
                     if new_list[i][0] == "/":
                         result_sub = str(new_list[i + 1]).strip("/")
+            else:
+                pass
         r = response.replace(num, result_sub)
+
         return r
 
-    def decomp_match(self, decomps, user_input):
+    def decomp_match(self, key, user_input):
+
+        decomps = key.get_decomps()
         selected_decomp = None
         max_num = len(user_input)
         current_list = []
         user_input = user_input.lower().split(" ")
+
         response = ""
         for j in decomps:
             m = re.findall("([a-z' ]*)", j.get_decomp_rule())
             my_list = [i.lstrip().rstrip() for i in m]
             my_list = [i for i in my_list if i]
             my_list = [i.split(" ") for i in my_list]
+
             iterator = iter(user_input)
             test = [all(j in iterator for j in i) for i in my_list]
+
             test = test.count(False)
+
             if test > 0:
                 truth = False
             else:
                 truth = True
+
             if truth:
                 # what if all the elements in that last decomp list you looked at (current_list) are also in this new list?
                 if current_list == []:
@@ -135,7 +149,6 @@ class Eliza:
                     selected_decomp = j
 
         if selected_decomp != None:
-            response = self.response_select(selected_decomp)
             return selected_decomp
         else:
             return None
@@ -163,16 +176,31 @@ class Eliza:
             else:
                 return decomp1
 
+    def cleanup_stack(self):
+        if len(self.stack) >= 5:
+            self.stack.pop(len(self.stack)-1)
+
     def respond(self, keys, user_input):
-        decomp = next((x for x in keys if x.get_keyword() == "None"), None).get_decomps()[0]
+        # Get decomp for None. We do it this way so that None could be anywhere in the file.
+        key = next((x for x in keys if x.get_keyword() == "None"), None)
+        decomp = key.get_decomps()[0]
         key_weight = 0
-        response = ""
         for i in keys:
             if i.get_keyword() != "" and (i.get_keyword() in user_input):
-                if self.decomp_match(i.get_decomps(), user_input) is not decomp:
+                if self.decomp_match(i, user_input) is not decomp:
                     if i.get_weight() >= key_weight:
-                        decomp = self.best_match(decomp, self.decomp_match(i.get_decomps(), user_input))
+                        decomp = self.best_match(decomp, self.decomp_match(i, user_input))
+                        key = i
                         key_weight = i.get_weight()
+
+        if key.get_keyword() == "None":
+            if self.stack != []:
+                key = next((x for x in keys if x.get_keyword() == "your"), None)
+                decomp = next((x for x in key.get_decomps() if x.get_decomp_rule().split(" ")[0] == "MEM"), None)
+                user_input = self.stack.pop()
+        elif key.get_keyword() == "your":
+            self.stack.append(user_input)
+            self.cleanup_stack()
 
         response = self.response_select(decomp)
         if any(char.isdigit() for char in response):
@@ -188,12 +216,10 @@ class Eliza:
             iterator = iter(user_input.split(" "))
             truth_list.append(all(j in iterator for j in i.split(" ")))
         test = truth_list.count(True)
-
         if test > 0:
             result = True
         else:
             result = False
-
         if bool(result):
             user_input = [user_input.replace(i, i.replace(" ", "")) for i in join_list if i in user_input][0]
 
@@ -229,9 +255,7 @@ class Eliza:
                 s = s[:div] + [line]
                 if len(s) == 1:
                     key = Key()
-                    test_list = [i for i in re.findall("[0-9]*", s[0]) if i]
                     weight = int(str([i for i in re.findall("[0-9]*", s[0]) if i][0]))
-                    keyword = re.sub("[0-9]", "", s[0].replace("key = ", "").replace(" ", ""))
                     key.set_keyword(re.sub("[0-9]", "", s[0].replace("key = ", "").replace(" ", "")))
                     key.set_weight(weight)
                     self.keys.append(key)
